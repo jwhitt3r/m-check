@@ -39,19 +39,24 @@ func (r *Repository) CollectDocs() error {
 		fmt.Printf("%v\n", err)
 	}
 	fmt.Println(len(dirContent))
-	for i := 0; i < len(dirContent); i++ {
+	for _, element := range dirContent {
 
-		if dirContent[i].GetType() == "file" {
-			r.FilesURL = append(r.FilesURL, dirContent[i].GetDownloadURL())
+		if element.GetType() == "file" {
+			r.FilesURL = append(r.FilesURL, element.GetDownloadURL())
 		}
 
-		if dirContent[i].GetType() == "dir" {
+		if element.GetType() == "dir" {
 
-			_, dirContent, _, err := client.Repositories.GetContents(context.Background(), r.Owner, r.RepoName, "docs"+"/"+dirContent[i].GetName(), nil)
+			_, dirContents, _, err := client.Repositories.GetContents(context.Background(), r.Owner, r.RepoName, "docs"+"/"+element.GetName(), nil)
 			if err != nil {
 				fmt.Printf("%v\n", err)
 			}
-			r.FilesURL = append(r.FilesURL, dirContent[i].GetDownloadURL())
+			for _, elements := range dirContents {
+
+				if elements.GetType() == "file" {
+					r.FilesURL = append(r.FilesURL, elements.GetDownloadURL())
+				}
+			}
 
 		}
 	}
