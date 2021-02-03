@@ -34,11 +34,26 @@ func (r *Repository) CollectDocs() error {
 	client := github.NewClient(nil)
 
 	_, dirContent, _, err := client.Repositories.GetContents(context.Background(), r.Owner, r.RepoName, "docs", nil)
+
 	if err != nil {
 		fmt.Printf("%v\n", err)
 	}
-	for _, content := range dirContent {
-		r.FilesURL = append(r.FilesURL, content.GetDownloadURL())
+	fmt.Println(len(dirContent))
+	for i := 0; i < len(dirContent); i++ {
+
+		if dirContent[i].GetType() == "file" {
+			r.FilesURL = append(r.FilesURL, dirContent[i].GetDownloadURL())
+		}
+
+		if dirContent[i].GetType() == "dir" {
+
+			_, dirContent, _, err := client.Repositories.GetContents(context.Background(), r.Owner, r.RepoName, "docs"+"/"+dirContent[i].GetName(), nil)
+			if err != nil {
+				fmt.Printf("%v\n", err)
+			}
+			r.FilesURL = append(r.FilesURL, dirContent[i].GetDownloadURL())
+
+		}
 	}
 
 	return nil
