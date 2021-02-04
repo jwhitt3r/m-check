@@ -89,7 +89,7 @@ func (r *Repository) Fetch(fileURL string) error {
 	filePath := "./docs/" + r.Owner + "/" + r.RepoName
 	resp, err := http.Get(fileURL)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to fetch URL: %v\n", err)
+		log.Printf("Failed to fetch URL: %v\n", err)
 	}
 
 	err = CreateDirectory(filePath)
@@ -119,7 +119,7 @@ func (r *Repository) Fetch(fileURL string) error {
 func (r *Repository) URLCheck(link string) error {
 	f, err := os.OpenFile("./docs/"+r.Owner+"/"+r.RepoName+"/output.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
-		log.Fatalf("Failed to create output file: %v\n", err)
+		log.Printf("Failed to create output file: %v\n", err)
 	}
 
 	defer f.Close()
@@ -130,12 +130,11 @@ func (r *Repository) URLCheck(link string) error {
 	resp, err := client.Get(link)
 	if err != nil {
 		io.WriteString(f, link+" - "+"Broken Link"+"\n")
-
 		log.Printf("Failed to connect to page: %v\n", err)
 		return err
 	}
 	_, err = io.WriteString(f, link+" - "+strconv.Itoa(resp.StatusCode)+"\n")
-	resp.Body.Close()
+	defer resp.Body.Close()
 
 	return nil
 
@@ -148,7 +147,7 @@ func (r *Repository) GetFileNames() error {
 	fmt.Println("[+] Gathering Filenames")
 	files, err := ioutil.ReadDir("./docs/" + r.Owner + "/" + r.RepoName)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Could not read files from directory: %v\n", err)
+		log.Fatalf("Could not read files from directory: %v\n", err)
 	}
 
 	for _, fileName := range files {
@@ -163,11 +162,11 @@ func (r *Repository) GetFileNames() error {
 // expression to find any possible links within the documentation.
 func (r *Repository) Parse() error {
 	fmt.Println("[+] Parsing All Markdown Documentation")
-	markdownURL := regexp.MustCompile(`https?://[^()]+?[^"]+`)
+	markdownURL := regexp.MustCompile(`https?://[^()]+?[^)"]+`)
 	for _, fileName := range r.Files {
 		f, err := os.Open("./docs/" + r.Owner + "/" + r.RepoName + "/" + fileName)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to open file: %v\n", err)
+			log.Fatalf("Failed to open file: %v\n", err)
 		}
 		defer f.Close()
 
@@ -192,7 +191,7 @@ func main() {
 	myRepo := Repository{
 		Owner:    "jwhitt3r",
 		RepoName: "test_repo",
-		Token:    "Token Here",
+		Token:    "",
 	}
 
 	myRepo.GitHubConnection()
@@ -211,10 +210,7 @@ func main() {
 
 	fmt.Println("[+] Checking Connectivty of Markdown Links")
 	for _, link := range myRepo.Links {
-		err := myRepo.URLCheck(link)
-		if err != nil {
-			log.Fatalf("Failed to do URL Check: %v\n", err)
-		}
+		myRepo.URLCheck(link)
 	}
 
 }
