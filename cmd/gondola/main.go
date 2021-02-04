@@ -20,95 +20,106 @@ import (
 	"golang.org/x/oauth2"
 )
 
+// Repository holds all the key information to review a GitHub repo
 type Repository struct {
 	Owner    string
 	RepoName string
 	FilesURL []string
 	Files    []string
 	Links    []string
+	Token    string
 }
 
-func (r *Repository) FindDocsDir(client *github.Client, ctx context.Context, path string) {
+// GithubContents recursively looks through any directory within the Documentation folder
+// of a repository and appends the FilesURL to a slice of strings to be downloaded later.
+func (r *Repository) githubContents(client *github.Client, ctx context.Context, path string) {
 	_, dirContents, _, err := client.Repositories.GetContents(ctx, r.Owner, r.RepoName, path, nil)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 	}
-	for _, elements := range dirContents {
-		switch elements.GetType() {
-		case "file":
-			r.FilesURL = append(r.FilesURL, elements.GetDownloadURL())
-		case "dir":
-			r.FindDocsDir(client, ctx, elements.GetPath())
-		}
-	}
-}
 
-// CollectDocs goes through the chosen Repository and pulls the
-// Contents of the docs folder
-func (r *Repository) CollectDocs() error {
-	fmt.Println("[+] Finding Repository")
-	ctx := context.Background()
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: "YOUR ACCESS TOKEN HERE"},
-	)
-	tc := oauth2.NewClient(ctx, ts)
-
-	client := github.NewClient(tc)
-
-	_, dirContent, _, err := client.Repositories.GetContents(ctx, r.Owner, r.RepoName, "docs", nil)
-
-	if err != nil {
-		fmt.Printf("%v\n", err)
-	}
-
-	for _, element := range dirContent {
+	for _, element := range dirContents {
 		switch element.GetType() {
 		case "file":
 			r.FilesURL = append(r.FilesURL, element.GetDownloadURL())
 		case "dir":
-			r.FindDocsDir(client, ctx, element.GetPath())
+			r.githubContents(client, ctx, element.GetPath())
 		}
+	}
+}
+
+// GitHubConnection creates a connection to GitHub through a personal access token
+// this increases the number of times you can connect to a repository
+func (r *Repository) GitHubConnection() error {
+
+	path := "docs"
+
+	fmt.Println("[+] Finding Repository")
+	ctx := context.Background()
+	if r.Token != "" {
+		ts := oauth2.StaticTokenSource(
+			&oauth2.Token{AccessToken: r.Token},
+		)
+		tc := oauth2.NewClient(ctx, ts)
+
+		client := github.NewClient(tc)
+		r.githubContents(client, ctx, path)
+	} else {
+		client := github.NewClient(nil)
+		r.githubContents(client, ctx, path)
 	}
 
 	return nil
 }
 
-// Fetch will download all the files that have been collected by the GetContents
-// function, and save them into the local repository
+// Creates a new directory to store the Github Repository
+// documentation within, currently it is /docs/<owner>/<RepoName>/
+func CreateDirectory(path string) error {
+	_, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		os.MkdirAll(path, 1)
+		return nil
+	}
+	return err
+}
+
+// Fetch will download all the files that have been collected by the GithubContents
+// function, and save them into the local repository.
 func (r *Repository) Fetch(fileURL string) error {
+	filePath := "./docs/" + r.Owner + "/" + r.RepoName
 	resp, err := http.Get(fileURL)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to fetch URL: %v\n", err)
 	}
 
-	// Create a directory
-	if _, err := os.Stat("./docs/" + r.Owner + "/" + r.RepoName); os.IsNotExist(err) {
-		fmt.Println("[+] Creating a Docs directory")
-		os.MkdirAll("./docs/"+r.Owner+"/"+r.RepoName, 1)
+	err = CreateDirectory(filePath)
+	if err != nil {
+		log.Fatalf("An error occured while making a new directory: %v\n", err)
 	}
 
-	// Download the files
-	f, err := os.Create("./docs/" + r.Owner + "/" + r.RepoName + "/" + url.QueryEscape(path.Base(fileURL)))
+	f, err := os.Create(filePath + "/" + url.QueryEscape(path.Base(fileURL)))
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to create file: %v\n", err)
+		log.Fatalf("Failed to create file: %v\n", err)
 	}
 	defer f.Close()
 
 	_, err = io.Copy(f, resp.Body)
 	resp.Body.Close()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to copy contents to file: %v\n", err)
+		log.Fatalf("Failed to copy contents to file: %v\n", err)
 	}
 
 	return nil
 
 }
 
+// URLCheck makes a connection to the list of URLS found within the
+// Markdown documentation, and provides the HTTP status_code to be
+// acted upon
 func (r *Repository) URLCheck(link string) error {
-
 	f, err := os.OpenFile("./docs/"+r.Owner+"/"+r.RepoName+"/output.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
-		log.Printf("Failed to create output file: %v\n", err)
+		log.Fatalf("Failed to create output file: %v\n", err)
 	}
 
 	defer f.Close()
@@ -147,8 +158,10 @@ func (r *Repository) GetFileNames() error {
 	return nil
 }
 
+// Parse traverses a markdown file that has been downloaded within the
+// documentation folder within the repository, and compares a regular
+// expression to find any possible links within the documentation.
 func (r *Repository) Parse() error {
-
 	fmt.Println("[+] Parsing All Markdown Documentation")
 	markdownURL := regexp.MustCompile(`https?://[^()]+?[^"]+`)
 	for _, fileName := range r.Files {
@@ -174,13 +187,15 @@ func (r *Repository) Parse() error {
 }
 
 func main() {
-	fmt.Println("Welcome to Gondola")
+	fmt.Println("[+] Welcome to Gondola [+]")
+
 	myRepo := Repository{
 		Owner:    "jwhitt3r",
 		RepoName: "test_repo",
+		Token:    "Token Here",
 	}
 
-	myRepo.CollectDocs()
+	myRepo.GitHubConnection()
 
 	fmt.Println("[+] Saving All Documentation Found")
 	for _, fileURL := range myRepo.FilesURL {
@@ -188,16 +203,17 @@ func main() {
 	}
 
 	myRepo.GetFileNames()
+
 	err := myRepo.Parse()
 	if err != nil {
-		fmt.Println("Failed to parse")
+		log.Fatalf("Failed to parse documentation")
 	}
 
 	fmt.Println("[+] Checking Connectivty of Markdown Links")
 	for _, link := range myRepo.Links {
 		err := myRepo.URLCheck(link)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to do URL Check: %v\n", err)
+			log.Fatalf("Failed to do URL Check: %v\n", err)
 		}
 	}
 
