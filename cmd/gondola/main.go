@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/google/go-github/v33/github"
+	"golang.org/x/oauth2"
 )
 
 type Repository struct {
@@ -27,37 +28,45 @@ type Repository struct {
 	Links    []string
 }
 
+func (r *Repository) FindDocsDir(client *github.Client, ctx context.Context, path string) {
+	_, dirContents, _, err := client.Repositories.GetContents(ctx, r.Owner, r.RepoName, path, nil)
+	if err != nil {
+		fmt.Printf("%v\n", err)
+	}
+	for _, elements := range dirContents {
+		switch elements.GetType() {
+		case "file":
+			r.FilesURL = append(r.FilesURL, elements.GetDownloadURL())
+		case "dir":
+			r.FindDocsDir(client, ctx, elements.GetPath())
+		}
+	}
+}
+
 // CollectDocs goes through the chosen Repository and pulls the
 // Contents of the docs folder
 func (r *Repository) CollectDocs() error {
 	fmt.Println("[+] Finding Repository")
-	client := github.NewClient(nil)
+	ctx := context.Background()
+	ts := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: "YOUR ACCESS TOKEN HERE"},
+	)
+	tc := oauth2.NewClient(ctx, ts)
 
-	_, dirContent, _, err := client.Repositories.GetContents(context.Background(), r.Owner, r.RepoName, "docs", nil)
+	client := github.NewClient(tc)
+
+	_, dirContent, _, err := client.Repositories.GetContents(ctx, r.Owner, r.RepoName, "docs", nil)
 
 	if err != nil {
 		fmt.Printf("%v\n", err)
 	}
-	fmt.Println(len(dirContent))
+
 	for _, element := range dirContent {
-
-		if element.GetType() == "file" {
+		switch element.GetType() {
+		case "file":
 			r.FilesURL = append(r.FilesURL, element.GetDownloadURL())
-		}
-
-		if element.GetType() == "dir" {
-
-			_, dirContents, _, err := client.Repositories.GetContents(context.Background(), r.Owner, r.RepoName, "docs"+"/"+element.GetName(), nil)
-			if err != nil {
-				fmt.Printf("%v\n", err)
-			}
-			for _, elements := range dirContents {
-
-				if elements.GetType() == "file" {
-					r.FilesURL = append(r.FilesURL, elements.GetDownloadURL())
-				}
-			}
-
+		case "dir":
+			r.FindDocsDir(client, ctx, element.GetPath())
 		}
 	}
 
