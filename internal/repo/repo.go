@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -49,16 +50,18 @@ func (r *Repository) GetGithubContents(ctx context.Context, path string) ([]stri
 	return r.Links, nil
 }
 
-// GitHubConnection creates a connection to GitHub through a personal access token
-// this increases the number of times you can connect to a repository
-func NewGithubConnection(owner string, reponame string, token string) *Repository {
-
+func NewRepository(owner string, reponame string, token string) *Repository {
 	r := Repository{
 		Owner:    owner,
 		RepoName: reponame,
 		token:    token,
 	}
+	return &r
+}
 
+// GitHubConnection creates a connection to GitHub through a personal access token
+// this increases the number of times you can connect to a repository
+func (r *Repository) NewGithubConnection() {
 	fmt.Println("[+] Finding Repository")
 	ctx := context.Background()
 	if r.token != "" {
@@ -68,11 +71,10 @@ func NewGithubConnection(owner string, reponame string, token string) *Repositor
 		tc := oauth2.NewClient(ctx, ts)
 
 		r.client = github.NewClient(tc)
-		return &r
+		return
 	}
 	r.client = github.NewClient(nil)
 
-	return &r
 }
 
 // Fetch will download all the files that have been collected by the GithubContents
@@ -134,22 +136,24 @@ func (r *Repository) Parse() error {
 	fmt.Println("[+] Parsing All Markdown Documentation")
 	markdownURL := regexp.MustCompile(`https?://[^()]+?[^)"]+`)
 	for _, fileName := range r.files {
-		f, err := os.Open(directory.GetFilePathTemplate(r.Owner, r.RepoName) + fileName)
-		if err != nil {
-			log.Fatalf("Failed to open file: %v\n", err)
-		}
-		defer f.Close()
-
-		scanner := bufio.NewScanner(f)
-
-		for scanner.Scan() {
-
-			submatchall := markdownURL.FindAllString(scanner.Text(), -1)
-
-			for _, element := range submatchall {
-				r.Links = append(r.Links, strings.TrimSpace(element))
+		if filepath.Ext(fileName) == ".md" {
+			f, err := os.Open(directory.GetFilePathTemplate(r.Owner, r.RepoName) + fileName)
+			if err != nil {
+				log.Fatalf("Failed to open file: %v\n", err)
 			}
+			defer f.Close()
 
+			scanner := bufio.NewScanner(f)
+
+			for scanner.Scan() {
+
+				submatchall := markdownURL.FindAllString(scanner.Text(), -1)
+
+				for _, element := range submatchall {
+					r.Links = append(r.Links, strings.TrimSpace(element))
+				}
+
+			}
 		}
 	}
 	return nil
