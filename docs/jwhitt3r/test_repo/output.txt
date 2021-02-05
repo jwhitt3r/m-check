@@ -1,0 +1,7 @@
+https://thisisatestlink.co.uk - Broken Link
+https://www.google.com - 200
+https://github.com/jwhitt3r3 - 404
+https://thisisatestlink141.com - Broken Link
+https://www.Yahoo.com - 200
+https://thisisatestlink123123123.com - Broken Link
+https://www.bing.com - 200
