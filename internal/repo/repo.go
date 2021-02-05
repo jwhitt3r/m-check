@@ -13,6 +13,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/jwhitt3r/gondola/internal/platform/directory"
+
 	"github.com/google/go-github/v33/github"
 	"golang.org/x/oauth2"
 )
@@ -27,9 +29,6 @@ type Repository struct {
 	Links    []string
 	client   *github.Client
 }
-
-const fileBaseTemplate = "./docs/"
-const filePathTemplate = "./docs/%s/%s/"
 
 // GithubContents recursively looks through any directory within the Documentation folder
 // of a repository and appends the FilesURL to a slice of strings to be downloaded later.
@@ -76,17 +75,6 @@ func NewGithubConnection(owner string, reponame string, token string) *Repositor
 	return &r
 }
 
-// Creates a new directory to store the Github Repository
-// documentation within, currently it is /docs/<owner>/<RepoName>/
-func CreateDirectory(path string) error {
-	_, err := os.Stat(path)
-	if os.IsNotExist(err) {
-		os.MkdirAll(path, 1)
-		return nil
-	}
-	return err
-}
-
 // Fetch will download all the files that have been collected by the GithubContents
 // function, and save them into the local repository.
 func (r *Repository) Fetch(fileURL string) error {
@@ -94,7 +82,7 @@ func (r *Repository) Fetch(fileURL string) error {
 	if err != nil {
 		log.Printf("Failed to fetch URL: %v\n", err)
 	}
-	err = CreateDirectory(fmt.Sprintf(filePathTemplate, r.Owner, r.RepoName))
+	err = directory.CreateDirectory(directory.GetFilePathTemplate(r.Owner, r.RepoName))
 	if err != nil {
 		log.Fatalf("An error occured while making a new directory: %v\n", err)
 	}
@@ -105,7 +93,7 @@ func (r *Repository) Fetch(fileURL string) error {
 	path := strings.ReplaceAll(u.Path, "/", ".")
 	pathFirstIndex := strings.Index(path, ".docs")
 
-	f, err := os.Create(fmt.Sprintf(filePathTemplate, r.Owner, r.RepoName) + path[pathFirstIndex+6:])
+	f, err := os.Create(directory.GetFilePathTemplate(r.Owner, r.RepoName) + path[pathFirstIndex+6:])
 	if err != nil {
 		log.Fatalf("Failed to create file: %v\n", err)
 	}
@@ -126,7 +114,7 @@ func (r *Repository) Fetch(fileURL string) error {
 func (r *Repository) GetFileNames() error {
 
 	fmt.Println("[+] Gathering Filenames")
-	files, err := ioutil.ReadDir(fmt.Sprintf(filePathTemplate, r.Owner, r.RepoName))
+	files, err := ioutil.ReadDir(directory.GetFilePathTemplate(r.Owner, r.RepoName))
 
 	if err != nil {
 		log.Fatalf("Could not read files from directory: %v\n", err)
@@ -146,7 +134,7 @@ func (r *Repository) Parse() error {
 	fmt.Println("[+] Parsing All Markdown Documentation")
 	markdownURL := regexp.MustCompile(`https?://[^()]+?[^)"]+`)
 	for _, fileName := range r.files {
-		f, err := os.Open(fmt.Sprintf(filePathTemplate, r.Owner, r.RepoName) + fileName)
+		f, err := os.Open(directory.GetFilePathTemplate(r.Owner, r.RepoName) + fileName)
 		if err != nil {
 			log.Fatalf("Failed to open file: %v\n", err)
 		}
