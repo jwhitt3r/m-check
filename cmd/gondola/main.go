@@ -11,9 +11,6 @@ import (
 	"github.com/jwhitt3r/gondola/internal/platform/urlchecker"
 )
 
-const fileBaseTemplate = "./docs/"
-const filePathTemplate = "./docs/%s/%s/"
-
 func main() {
 	fmt.Println("[+] Welcome to Gondola [+]")
 	owner, reponame, token := "jwhitt3r", "test_repo", ""
@@ -22,7 +19,7 @@ func main() {
 
 	myRepo := repo.NewGithubConnection(owner, reponame, token)
 
-	myRepo.GetGithubContents(context.Background(), fileBaseTemplate)
+	myRepo.GetGithubContents(context.Background(), directory.GetFileBaseTemplate())
 
 	fmt.Println("[+] Saving All Documentation Found")
 	for _, fileURL := range myRepo.FilesURL {
