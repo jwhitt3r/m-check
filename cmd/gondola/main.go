@@ -7,8 +7,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/jwhitt3r/gondola/internal/platform/repo"
-	"github.com/jwhitt3r/gondola/internal/platform/urlchecker"
+	"github.com/jwhitt3r/gondola/internal/platform/directory"
+	"github.com/jwhitt3r/gondola/internal/repo"
+	"github.com/jwhitt3r/gondola/internal/urlchecker"
 )
 
 func main() {
@@ -35,7 +36,7 @@ func main() {
 
 	fmt.Println("[+] Checking Connectivty of Markdown Links")
 	for _, link := range myRepo.Links {
-		checker.URLCheck(fmt.Sprintf(filePathTemplate, myRepo.Owner, myRepo.RepoName), link)
+		checker.URLCheck(directory.GetFilePathTemplate(myRepo.Owner, myRepo.RepoName), link)
 	}
 
 }
