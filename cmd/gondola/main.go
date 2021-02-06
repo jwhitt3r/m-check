@@ -14,6 +14,8 @@ import (
 	"github.com/jwhitt3r/gondola/internal/urlchecker"
 )
 
+const fileBaseTemplate = "./docs/"
+
 var (
 	o = flag.String("o", "", "Used to specify the owner of the repository.")
 	r = flag.String("r", "", "Used to specify the Repository that you would like to search in.")
@@ -60,7 +62,7 @@ func main() {
 	checker := urlchecker.NewURLChecker(client)
 	if local == false {
 		myRepo.NewGithubConnection()
-		myRepo.GetGithubContents(context.Background(), directory.GetFileBaseTemplate())
+		myRepo.GetGithubContents(context.Background(), fileBaseTemplate)
 
 		fmt.Println("[+] Saving All Documentation Found")
 		for _, fileURL := range myRepo.FilesURL {

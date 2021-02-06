@@ -16,11 +16,6 @@ func CreateDirectory(path string) error {
 	return err
 }
 
-func GetFileBaseTemplate() string {
-	fileBaseTemplate := "./docs/"
-	return fileBaseTemplate
-}
-
 func GetFilePathTemplate(owner string, repoName string) string {
 	filePathTemplate := fmt.Sprintf("./docs/%s/%s/", owner, repoName)
 	return filePathTemplate
