@@ -11,7 +11,7 @@ import (
 
 	"github.com/jwhitt3r/gondola/internal/platform/directory"
 	"github.com/jwhitt3r/gondola/internal/repo"
-	"github.com/jwhitt3r/gondola/internal/urlchecker"
+	"github.com/jwhitt3r/gondola/internal/urlcheck"
 )
 
 const fileBaseTemplate = "./docs/"
@@ -59,7 +59,7 @@ func main() {
 
 	myRepo := repo.NewRepository(owner, reponame, token)
 	client := http.Client{Timeout: 5 * time.Second}
-	checker := urlchecker.NewURLChecker(client)
+	checker := urlcheck.NewURLChecker(client)
 	if local == false {
 		myRepo.NewGithubConnection()
 		myRepo.GetGithubContents(context.Background(), fileBaseTemplate)
@@ -78,8 +78,9 @@ func main() {
 	}
 
 	fmt.Println("[+] Checking Connectivty of Markdown Links")
-	for _, link := range myRepo.Links {
-		checker.URLCheck(directory.GetFilePathTemplate(myRepo.Owner, myRepo.RepoName), link)
+	response, err := checker.URLCheck(myRepo.Links)
+	for key, val := range response {
+		directory.OutputToFile(directory.GetFilePathTemplate(myRepo.Owner, myRepo.RepoName), key, val)
 	}
 
 }
