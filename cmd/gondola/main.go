@@ -78,7 +78,7 @@ func main() {
 		if err != nil {
 			log.Fatalf("An error occured while making a new directory: %v\n", err)
 		}
-		myRepo.Fetch(myRepo.FilesURL)
+		myRepo.FetchAndCreate(myRepo.FilesURL)
 
 	}
 	myRepo.GetFileNames()

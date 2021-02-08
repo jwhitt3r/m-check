@@ -89,9 +89,10 @@ func (r *Repository) NewGithubConnection() {
 
 }
 
-// Fetch will download all the files that have been collected by the GithubContents
-// function, and save them into the local repository.
-func (r *Repository) Fetch(fileURLS []string) error {
+// FetchAndCreate will download all the files that have been
+// collected by the GithubContents function, and save them into
+// the local repository.
+func (r *Repository) FetchAndCreate(fileURLS []string) error {
 
 	for _, fileURL := range fileURLS {
 		resp, err := http.Get(fileURL)
