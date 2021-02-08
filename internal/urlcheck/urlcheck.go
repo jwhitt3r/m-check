@@ -6,19 +6,25 @@ import (
 	"strconv"
 )
 
+// URLChecker represents a URL that is being used to verify the URI's status code
 type URLChecker struct {
+	// Client specifies a http.Client type to be used to make GET requests
+	// within the URLCheck function.
 	client http.Client
 }
 
-func NewURLChecker(client http.Client) *URLChecker {
+// NewURLChecker is a wrapper for the creation of a URLChecker type
+// which returns the address of the newly created URLChecker type.
+func NewURLCheck(client http.Client) *URLChecker {
 	return &URLChecker{
 		client: client,
 	}
 }
 
 // URLCheck makes a connection to the list of URLS found within the
-// Markdown documentation, and provides the HTTP status_code to be
-// acted upon
+// Markdown documentation, and appends the link and status code to
+// a slice of strings. This will be passed to the OutputFile function
+// found in the /internal/platform/directory.go file.
 func (u *URLChecker) URLCheck(links []string) ([]string, error) {
 	var webConnectionResponse []string
 

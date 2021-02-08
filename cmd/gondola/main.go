@@ -1,3 +1,6 @@
+// Gondola is a Markdown URL checker that is to verify
+// links that are typically found within the scope of
+// Github documentation directories.
 package main
 
 import (
@@ -14,6 +17,8 @@ import (
 	"github.com/jwhitt3r/gondola/internal/urlcheck"
 )
 
+// Used to generate the base location to store the downloaded documentation
+// and output file.
 const fileBaseTemplate = "./docs/"
 
 var (
@@ -32,6 +37,10 @@ Options:
 Optional:
 	-t Your GitHub Personal Token if you would like to have a higher level of searchers.
 	-l Indicates that there is a local copy of the documentation already downloaded.
+
+Example For Downloading Content: ./gondola -o jwhitt3r -r gondola -t 12345678975336985
+
+Example For Working On A Local Copy: ./gondola -o jwhitt3r -r gondola -l
 `
 
 func main() {
@@ -59,7 +68,7 @@ func main() {
 
 	myRepo := repo.NewRepository(owner, reponame, token)
 	client := http.Client{Timeout: 5 * time.Second}
-	checker := urlcheck.NewURLChecker(client)
+	checker := urlcheck.NewURLCheck(client)
 	if local == false {
 		myRepo.NewGithubConnection()
 		myRepo.GetGithubContents(context.Background(), fileBaseTemplate)
@@ -87,6 +96,8 @@ func main() {
 
 }
 
+// A simple function to present the usage of flags when running the command.
+// This is typically called when there are not enough flags have been passed at runtime.
 func usageAndExit(msg string) {
 	if msg != "" {
 		fmt.Fprintf(os.Stderr, msg)

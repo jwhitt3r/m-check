@@ -20,36 +20,48 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// Repository holds all the key information to review a GitHub repo
+// Repository holds all the key information for managing a Github repository.
 type Repository struct {
-	Owner    string
+	// Owner is the owner of the repository we are evaluating e.g., jwhitt3r.
+	Owner string
+	// RepoName is the repository that is going to be downloaded, e.g., Gondola.
 	RepoName string
+	// Files holds the names of all downloaded documentation.
+	files []string
+	// FilesURL are the URLS for the fetch function to download against.
+	// This data is gathered by the GetGitHub Contents.
 	FilesURL []string
-	files    []string
-	token    string
-	Links    []string
-	client   *github.Client
+	// Token is the personal token used to authenticate with the Github server.
+	// By supplying a token, a user is allowed more requests to the Github server.
+	token string
+	// Links holds all the URLS that have been gathered from the the documents that
+	// have been downloaded from the Documentation folder of a repository
+	Links  []string
+	client *github.Client
 }
 
 // GithubContents recursively looks through any directory within the Documentation folder
-// of a repository and appends the FilesURL to a slice of strings to be downloaded later.
-func (r *Repository) GetGithubContents(ctx context.Context, path string) ([]string, error) {
+// of a repository and appends the FilesURL of a Markdown file to a slice of strings to be
+// downloaded later.
+func (r *Repository) GetGithubContents(ctx context.Context, path string) error {
 	_, dirContents, _, err := r.client.Repositories.GetContents(ctx, r.Owner, r.RepoName, path, nil)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 	}
-
 	for _, element := range dirContents {
 		switch element.GetType() {
 		case "file":
-			r.FilesURL = append(r.FilesURL, element.GetDownloadURL())
+			if filepath.Ext(element.GetName()) == ".md" {
+				r.FilesURL = append(r.FilesURL, element.GetDownloadURL())
+			}
 		case "dir":
 			r.GetGithubContents(ctx, element.GetPath())
 		}
 	}
-	return r.Links, nil
+	return nil
 }
 
+// NewRepoistory wraps the creation of a Repository type
 func NewRepository(owner string, reponame string, token string) *Repository {
 	r := Repository{
 		Owner:    owner,
@@ -134,6 +146,10 @@ func (r *Repository) GetFileNames() error {
 // expression to find any possible links within the documentation.
 func (r *Repository) Parse() error {
 	fmt.Println("[+] Parsing All Markdown Documentation")
+	// The Regex will aim to locate any address that has the following structure:
+	// https://github.com/jwhitt3r. An example of this would be within a markdown
+	// file as: [Jwhitt3rs GitHub](https://github.com/jwhitt3r) or
+	// file as: [Jwhitt3rs GitHub]("https://github.com/jwhitt3r")
 	markdownURL := regexp.MustCompile(`https?://[^()]+?[^)"]+`)
 	for _, fileName := range r.files {
 		if filepath.Ext(fileName) == ".md" {

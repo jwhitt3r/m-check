@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-// Creates a new directory to store the Github Repository
+// CreateDirectory creates a new directory to store the Github Repository
 // documentation within, currently it is /docs/<owner>/<RepoName>/
 func CreateDirectory(path string) error {
 	_, err := os.Stat(path)
@@ -18,11 +18,13 @@ func CreateDirectory(path string) error {
 	return err
 }
 
+// GetFilePathTemplate formats a filepath to be used for the creation of a new file.
 func GetFilePathTemplate(owner string, repoName string) string {
 	filePathTemplate := fmt.Sprintf("./docs/%s/%s/", owner, repoName)
 	return filePathTemplate
 }
 
+// OutputToFile creates a file to store the link and the responding status code or error.
 func OutputToFile(path string, val string) error {
 	f, err := os.OpenFile(path+"output.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
