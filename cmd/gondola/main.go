@@ -83,14 +83,12 @@ func main() {
 	}
 	myRepo.GetFileNames()
 
-	err := myRepo.Parse()
-	if err != nil {
-		log.Fatalf("Failed to parse documentation")
-	}
+	links := myRepo.ParseBatch()
 
 	fmt.Println("[+] Checking Connectivty of Markdown Links")
-	response, err := checker.URLCheck(myRepo.Links)
-	for _, val := range response {
+	webConnectionResponse := checker.URLCheckBatch(links)
+
+	for _, val := range webConnectionResponse {
 		directory.OutputToFile(directory.GetFilePathTemplate(myRepo.Owner, myRepo.RepoName), val)
 	}
 
