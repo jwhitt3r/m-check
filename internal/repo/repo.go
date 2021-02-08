@@ -79,32 +79,32 @@ func (r *Repository) NewGithubConnection() {
 
 // Fetch will download all the files that have been collected by the GithubContents
 // function, and save them into the local repository.
-func (r *Repository) Fetch(fileURL string) error {
-	resp, err := http.Get(fileURL)
-	if err != nil {
-		log.Printf("Failed to fetch URL: %v\n", err)
-	}
-	err = directory.CreateDirectory(directory.GetFilePathTemplate(r.Owner, r.RepoName))
-	if err != nil {
-		log.Fatalf("An error occured while making a new directory: %v\n", err)
-	}
-	u, err := url.Parse(fileURL)
-	if err != nil {
-		log.Printf("Failed to parse URL: %v\n", err)
-	}
-	path := strings.ReplaceAll(u.Path, "/", ".")
-	pathFirstIndex := strings.Index(path, ".docs")
+func (r *Repository) Fetch(fileURLS []string) error {
 
-	f, err := os.Create(directory.GetFilePathTemplate(r.Owner, r.RepoName) + path[pathFirstIndex+6:])
-	if err != nil {
-		log.Fatalf("Failed to create file: %v\n", err)
-	}
-	defer f.Close()
+	for _, fileURL := range fileURLS {
+		resp, err := http.Get(fileURL)
+		if err != nil {
+			log.Printf("Failed to fetch URL: %v\n", err)
+		}
 
-	_, err = io.Copy(f, resp.Body)
-	resp.Body.Close()
-	if err != nil {
-		log.Fatalf("Failed to copy contents to file: %v\n", err)
+		u, err := url.Parse(fileURL)
+		if err != nil {
+			log.Printf("Failed to parse URL: %v\n", err)
+		}
+		path := strings.ReplaceAll(u.Path, "/", ".")
+		pathFirstIndex := strings.Index(path, ".docs")
+
+		f, err := os.Create(directory.GetFilePathTemplate(r.Owner, r.RepoName) + path[pathFirstIndex+6:])
+		if err != nil {
+			log.Fatalf("Failed to create file: %v\n", err)
+		}
+		defer f.Close()
+
+		_, err = io.Copy(f, resp.Body)
+		resp.Body.Close()
+		if err != nil {
+			log.Fatalf("Failed to copy contents to file: %v\n", err)
+		}
 	}
 
 	return nil
