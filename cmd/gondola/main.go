@@ -65,9 +65,11 @@ func main() {
 		myRepo.GetGithubContents(context.Background(), fileBaseTemplate)
 
 		fmt.Println("[+] Saving All Documentation Found")
-		for _, fileURL := range myRepo.FilesURL {
-			myRepo.Fetch(fileURL)
+		err := directory.CreateDirectory(directory.GetFilePathTemplate(myRepo.Owner, myRepo.RepoName))
+		if err != nil {
+			log.Fatalf("An error occured while making a new directory: %v\n", err)
 		}
+		myRepo.Fetch(myRepo.FilesURL)
 
 	}
 	myRepo.GetFileNames()
