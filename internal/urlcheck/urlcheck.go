@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"sync"
 )
 
 // URLChecker represents a URL that is being used to verify the URI's status code
@@ -21,21 +22,37 @@ func NewURLCheck(client http.Client) *URLChecker {
 	}
 }
 
-// URLCheck makes a connection to the list of URLS found within the
-// Markdown documentation, and appends the link and status code to
-// a slice of strings. This will be passed to the OutputFile function
-// found in the /internal/platform/directory.go file.
-func (u *URLChecker) URLCheck(links []string) ([]string, error) {
-	var webConnectionResponse []string
-
-	for _, link := range links {
-		resp, err := u.client.Get(link)
-		if err != nil {
-			webConnectionResponse = append(webConnectionResponse, fmt.Sprintf("%s - Broken Link", link))
-			continue
-		}
-		webConnectionResponse = append(webConnectionResponse, fmt.Sprintf("%s - %s", link, strconv.Itoa(resp.StatusCode)))
-		defer resp.Body.Close()
+// URLCheck makes a connection to a url found within the
+// Markdown documentation and returns the formatted string
+// to be appended to a list of links and status codes to
+// be examined later on.
+func (u *URLChecker) URLCheck(link string) string {
+	resp, err := u.client.Get(link)
+	if err != nil {
+		return fmt.Sprintf("%s - Broken Link", link)
 	}
-	return webConnectionResponse, nil
+	defer resp.Body.Close()
+	return fmt.Sprintf("%s - %s", link, strconv.Itoa(resp.StatusCode))
+}
+
+// URLCheckBatch takes a list of urls and wraps a concurrent
+// check of each url found within the documentation. The method
+// then returns a slice of the outcomes to be saved to file.
+func (u *URLChecker) URLCheckBatch(links []string) []string {
+	var webConnectionResponse []string
+	ch := make(chan string, len(links))
+	var wg sync.WaitGroup
+	wg.Add(len(links))
+	for _, link := range links {
+		go func(link string) {
+			ch <- u.URLCheck(link)
+			wg.Done()
+		}(link)
+	}
+	wg.Wait()
+	close(ch)
+	for value := range ch {
+		webConnectionResponse = append(webConnectionResponse, value)
+	}
+	return webConnectionResponse
 }

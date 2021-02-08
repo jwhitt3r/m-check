@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 
 	"github.com/jwhitt3r/gondola/internal/platform/directory"
 
@@ -36,7 +37,6 @@ type Repository struct {
 	token string
 	// Links holds all the URLS that have been gathered from the the documents that
 	// have been downloaded from the Documentation folder of a repository
-	Links  []string
 	client *github.Client
 }
 
@@ -144,33 +144,57 @@ func (r *Repository) GetFileNames() error {
 // Parse traverses a markdown file that has been downloaded within the
 // documentation folder within the repository, and compares a regular
 // expression to find any possible links within the documentation.
-func (r *Repository) Parse() error {
-	fmt.Println("[+] Parsing All Markdown Documentation")
+func (r *Repository) Parse(fileName string) []string {
+
+	var links []string
 	// The Regex will aim to locate any address that has the following structure:
 	// https://github.com/jwhitt3r. An example of this would be within a markdown
 	// file as: [Jwhitt3rs GitHub](https://github.com/jwhitt3r) or
 	// file as: [Jwhitt3rs GitHub]("https://github.com/jwhitt3r")
 	markdownURL := regexp.MustCompile(`https?://[^()]+?[^)"]+`)
-	for _, fileName := range r.files {
-		if filepath.Ext(fileName) == ".md" {
-			f, err := os.Open(directory.GetFilePathTemplate(r.Owner, r.RepoName) + fileName)
-			if err != nil {
-				log.Fatalf("Failed to open file: %v\n", err)
+
+	if filepath.Ext(fileName) == ".md" {
+		f, err := os.Open(directory.GetFilePathTemplate(r.Owner, r.RepoName) + fileName)
+		if err != nil {
+			log.Fatalf("Failed to open file: %v\n", err)
+		}
+		defer f.Close()
+
+		scanner := bufio.NewScanner(f)
+
+		for scanner.Scan() {
+
+			submatchall := markdownURL.FindAllString(scanner.Text(), -1)
+
+			for _, element := range submatchall {
+				links = append(links, strings.TrimSpace(element))
 			}
-			defer f.Close()
 
-			scanner := bufio.NewScanner(f)
-
-			for scanner.Scan() {
-
-				submatchall := markdownURL.FindAllString(scanner.Text(), -1)
-
-				for _, element := range submatchall {
-					r.Links = append(r.Links, strings.TrimSpace(element))
-				}
-
-			}
 		}
 	}
-	return nil
+
+	return links
+}
+
+// ParseBatch wraps a concurrent method for parsing a file
+// which the outcome is then appended to a slice of strings,
+// to be passed to the URLCheckBatch function.
+func (r *Repository) ParseBatch() []string {
+	ch := make(chan []string, len(r.files))
+	var links []string
+	var wg sync.WaitGroup
+	wg.Add(len(r.files))
+	for _, fileName := range r.files {
+		go func(fileName string) {
+			ch <- r.Parse(fileName)
+			wg.Done()
+		}(fileName)
+
+	}
+	wg.Wait()
+	close(ch)
+	for value := range ch {
+		links = append(links, value...)
+	}
+	return links
 }
