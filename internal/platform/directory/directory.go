@@ -23,7 +23,7 @@ func GetFilePathTemplate(owner string, repoName string) string {
 	return filePathTemplate
 }
 
-func OutputToFile(path string, link string, code string) error {
+func OutputToFile(path string, val string) error {
 	f, err := os.OpenFile(path+"output.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		log.Printf("Failed to create output file: %v\n", err)
@@ -31,7 +31,7 @@ func OutputToFile(path string, link string, code string) error {
 
 	defer f.Close()
 
-	_, err = io.WriteString(f, link+" - "+code+"\n")
+	_, err = io.WriteString(f, val+"\n")
 
 	return nil
 }

@@ -79,8 +79,8 @@ func main() {
 
 	fmt.Println("[+] Checking Connectivty of Markdown Links")
 	response, err := checker.URLCheck(myRepo.Links)
-	for key, val := range response {
-		directory.OutputToFile(directory.GetFilePathTemplate(myRepo.Owner, myRepo.RepoName), key, val)
+	for _, val := range response {
+		directory.OutputToFile(directory.GetFilePathTemplate(myRepo.Owner, myRepo.RepoName), val)
 	}
 
 }
