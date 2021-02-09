@@ -17,14 +17,13 @@ import (
 	"github.com/jwhitt3r/gondola/internal/urlcheck"
 )
 
-// Used to generate the base location to store the downloaded documentation
-// and output file.
-const fileBaseTemplate = "./docs/"
-
 var (
 	o = flag.String("o", "", "Used to specify the owner of the repository.")
 	r = flag.String("r", "", "Used to specify the Repository that you would like to search in.")
 	t = flag.String("t", "", "Used to specify Your GitHub Personal Token.")
+	b = flag.String("b", "./docs", "Used to specify the Base Path to save your documents")
+	p = flag.String("p", "docs", "Used to specify the remote documentation location")
+
 	l = flag.Bool("l", false, "Used to specify a local scan, this indicates that you have already downloaded the documentation.")
 )
 
@@ -37,10 +36,16 @@ Options:
 Optional:
 	-t Your GitHub Personal Token if you would like to have a higher level of searchers.
 	-l Indicates that there is a local copy of the documentation already downloaded.
+	-b Used to specify the Base Path to save your documents, by default it will be ./docs
+	-p Used to specify the remote documentation location, by default this will be /docs (Please note, you do not need to put a forward-slash (/) in your command)
 
 Example For Downloading Content: ./gondola -o jwhitt3r -r gondola -t 12345678975336985
 
 Example For Working On A Local Copy: ./gondola -o jwhitt3r -r gondola -l
+
+Example For Saving To Non-Default Destination: ./gondola -o jwhitt3r -r gondola -b ./tmp
+
+Example For Non-Default Remote Directory ./gondola -o jwhitt3r -r test_repo -p "documentation"
 `
 
 func main() {
@@ -57,6 +62,8 @@ func main() {
 	reponame := *r
 	token := *t
 	local := *l
+	basepath := *b
+	remotepath := *p
 
 	if owner == "" {
 		usageAndExit(fmt.Sprintf("The repository owner has not been set"))
@@ -71,25 +78,25 @@ func main() {
 	checker := urlcheck.NewURLCheck(client)
 	if local == false {
 		myRepo.NewGithubConnection()
-		myRepo.GetGithubContents(context.Background(), fileBaseTemplate)
+		myRepo.GetGithubContents(context.Background(), remotepath)
 
 		fmt.Println("[+] Saving All Documentation Found")
-		err := directory.CreateDirectory(directory.GetFilePathTemplate(myRepo.Owner, myRepo.RepoName))
+		err := directory.CreateDirectory(directory.GetFilePathTemplate(basepath, myRepo.Owner, myRepo.RepoName))
 		if err != nil {
 			log.Fatalf("An error occured while making a new directory: %v\n", err)
 		}
-		myRepo.FetchAndCreate(myRepo.FilesURL)
+		myRepo.FetchAndCreate(basepath, myRepo.FilesURL)
 
 	}
-	myRepo.GetFileNames()
+	myRepo.GetFileNames(basepath)
 
-	links := myRepo.ParseBatch()
+	links := myRepo.ParseBatch(basepath)
 
 	fmt.Println("[+] Checking Connectivty of Markdown Links")
 	webConnectionResponse := checker.URLCheckBatch(links)
 
 	for _, val := range webConnectionResponse {
-		directory.OutputToFile(directory.GetFilePathTemplate(myRepo.Owner, myRepo.RepoName), val)
+		directory.OutputToFile(directory.GetFilePathTemplate(basepath, myRepo.Owner, myRepo.RepoName), val)
 	}
 
 }
