@@ -92,7 +92,7 @@ func (r *Repository) NewGithubConnection() {
 // FetchAndCreate will download all the files that have been
 // collected by the GithubContents function, and save them into
 // the local repository.
-func (r *Repository) FetchAndCreate(fileURLS []string) error {
+func (r *Repository) FetchAndCreate(basepath string, fileURLS []string) error {
 
 	for _, fileURL := range fileURLS {
 		resp, err := http.Get(fileURL)
@@ -107,7 +107,7 @@ func (r *Repository) FetchAndCreate(fileURLS []string) error {
 		path := strings.ReplaceAll(u.Path, "/", ".")
 		pathFirstIndex := strings.Index(path, ".docs")
 
-		f, err := os.Create(directory.GetFilePathTemplate(r.Owner, r.RepoName) + path[pathFirstIndex+6:])
+		f, err := os.Create(directory.GetFilePathTemplate(basepath, r.Owner, r.RepoName) + path[pathFirstIndex+6:])
 		if err != nil {
 			log.Fatalf("Failed to create file: %v\n", err)
 		}
@@ -126,10 +126,10 @@ func (r *Repository) FetchAndCreate(fileURLS []string) error {
 
 // GetFileNames gathers all the downloaded files found within the docs
 // directory and stores them into the Files Slice.
-func (r *Repository) GetFileNames() error {
+func (r *Repository) GetFileNames(basepath string) error {
 
 	fmt.Println("[+] Gathering Filenames")
-	files, err := ioutil.ReadDir(directory.GetFilePathTemplate(r.Owner, r.RepoName))
+	files, err := ioutil.ReadDir(directory.GetFilePathTemplate(basepath, r.Owner, r.RepoName))
 
 	if err != nil {
 		log.Fatalf("Could not read files from directory: %v\n", err)
@@ -145,7 +145,7 @@ func (r *Repository) GetFileNames() error {
 // Parse traverses a markdown file that has been downloaded within the
 // documentation folder within the repository, and compares a regular
 // expression to find any possible links within the documentation.
-func (r *Repository) Parse(fileName string) []string {
+func (r *Repository) Parse(basepath string, fileName string) []string {
 
 	var links []string
 	// The Regex will aim to locate any address that has the following structure:
@@ -155,7 +155,7 @@ func (r *Repository) Parse(fileName string) []string {
 	markdownURL := regexp.MustCompile(`https?://[^()]+?[^)"]+`)
 
 	if filepath.Ext(fileName) == ".md" {
-		f, err := os.Open(directory.GetFilePathTemplate(r.Owner, r.RepoName) + fileName)
+		f, err := os.Open(directory.GetFilePathTemplate(basepath, r.Owner, r.RepoName) + fileName)
 		if err != nil {
 			log.Fatalf("Failed to open file: %v\n", err)
 		}
@@ -180,14 +180,14 @@ func (r *Repository) Parse(fileName string) []string {
 // ParseBatch wraps a concurrent method for parsing a file
 // which the outcome is then appended to a slice of strings,
 // to be passed to the URLCheckBatch function.
-func (r *Repository) ParseBatch() []string {
+func (r *Repository) ParseBatch(basepath string) []string {
 	ch := make(chan []string, len(r.files))
 	var links []string
 	var wg sync.WaitGroup
 	wg.Add(len(r.files))
 	for _, fileName := range r.files {
 		go func(fileName string) {
-			ch <- r.Parse(fileName)
+			ch <- r.Parse(basepath, fileName)
 			wg.Done()
 		}(fileName)
 
