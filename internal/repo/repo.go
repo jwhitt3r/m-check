@@ -27,11 +27,6 @@ type Repository struct {
 	Owner string
 	// RepoName is the repository that is going to be downloaded, e.g., Gondola.
 	RepoName string
-	// Files holds the names of all downloaded documentation.
-	files []string
-	// FilesURL are the URLS for the fetch function to download against.
-	// This data is gathered by the GetGitHub Contents.
-	FilesURL []string
 	// Token is the personal token used to authenticate with the Github server.
 	// By supplying a token, a user is allowed more requests to the Github server.
 	token string
@@ -40,10 +35,14 @@ type Repository struct {
 	client *github.Client
 }
 
+// Global variable to be used to allow for the recursive appends of files to the list.
+var filesDownloadURL []string
+
 // GithubContents recursively looks through any directory within the Documentation folder
 // of a repository and appends the FilesURL of a Markdown file to a slice of strings to be
 // downloaded later.
-func (r *Repository) GetGithubContents(ctx context.Context, path string) error {
+func (r *Repository) GetGithubContents(ctx context.Context, path string) []string {
+
 	_, dirContents, _, err := r.client.Repositories.GetContents(ctx, r.Owner, r.RepoName, path, nil)
 	if err != nil {
 		fmt.Printf("%v\n", err)
@@ -52,13 +51,13 @@ func (r *Repository) GetGithubContents(ctx context.Context, path string) error {
 		switch element.GetType() {
 		case "file":
 			if filepath.Ext(element.GetName()) == ".md" {
-				r.FilesURL = append(r.FilesURL, element.GetDownloadURL())
+				filesDownloadURL = append(filesDownloadURL, element.GetDownloadURL())
 			}
 		case "dir":
 			r.GetGithubContents(ctx, element.GetPath())
 		}
 	}
-	return nil
+	return filesDownloadURL
 }
 
 // NewRepoistory wraps the creation of a Repository type
@@ -126,8 +125,8 @@ func (r *Repository) FetchAndCreate(basepath string, fileURLS []string) error {
 
 // GetFileNames gathers all the downloaded files found within the docs
 // directory and stores them into the Files Slice.
-func (r *Repository) GetFileNames(basepath string) error {
-
+func (r *Repository) GetFileNames(basepath string) []string {
+	var f []string
 	fmt.Println("[+] Gathering Filenames")
 	files, err := ioutil.ReadDir(directory.GetFilePathTemplate(basepath, r.Owner, r.RepoName))
 
@@ -136,10 +135,10 @@ func (r *Repository) GetFileNames(basepath string) error {
 	}
 
 	for _, fileName := range files {
-		r.files = append(r.files, fileName.Name())
+		f = append(f, fileName.Name())
 	}
 
-	return nil
+	return f
 }
 
 // Parse traverses a markdown file that has been downloaded within the
@@ -180,12 +179,12 @@ func (r *Repository) Parse(basepath string, fileName string) []string {
 // ParseBatch wraps a concurrent method for parsing a file
 // which the outcome is then appended to a slice of strings,
 // to be passed to the URLCheckBatch function.
-func (r *Repository) ParseBatch(basepath string) []string {
-	ch := make(chan []string, len(r.files))
+func (r *Repository) ParseBatch(basepath string, files []string) []string {
+	ch := make(chan []string, len(files))
 	var links []string
 	var wg sync.WaitGroup
-	wg.Add(len(r.files))
-	for _, fileName := range r.files {
+	wg.Add(len(files))
+	for _, fileName := range files {
 		go func(fileName string) {
 			ch <- r.Parse(basepath, fileName)
 			wg.Done()

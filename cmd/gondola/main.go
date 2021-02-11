@@ -78,19 +78,19 @@ func main() {
 	checker := urlcheck.NewURLCheck(client)
 	if local == false {
 		myRepo.NewGithubConnection()
-		myRepo.GetGithubContents(context.Background(), remotepath)
+		FilesDownloadURL := myRepo.GetGithubContents(context.Background(), remotepath)
 
 		fmt.Println("[+] Saving All Documentation Found")
 		err := directory.CreateDirectory(directory.GetFilePathTemplate(basepath, myRepo.Owner, myRepo.RepoName))
 		if err != nil {
 			log.Fatalf("An error occured while making a new directory: %v\n", err)
 		}
-		myRepo.FetchAndCreate(basepath, myRepo.FilesURL)
+		myRepo.FetchAndCreate(basepath, FilesDownloadURL)
 
 	}
-	myRepo.GetFileNames(basepath)
+	files := myRepo.GetFileNames(basepath)
 
-	links := myRepo.ParseBatch(basepath)
+	links := myRepo.ParseBatch(basepath, files)
 
 	fmt.Println("[+] Checking Connectivty of Markdown Links")
 	webConnectionResponse := checker.URLCheckBatch(links)
