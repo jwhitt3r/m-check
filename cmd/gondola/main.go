@@ -27,25 +27,29 @@ var (
 	l = flag.Bool("l", false, "Used to specify a local scan, this indicates that you have already downloaded the documentation.")
 )
 
-var usage = `Usage: Gondola [options...]
+var usage = `Usage: Gondola [mandatory...] [options...]
 
-Options:
+Mandatory:
 	-o Owner of the repository you would like to search.
 	-r Repository that you would like to search in.
 
 Optional:
 	-t Your GitHub Personal Token if you would like to have a higher level of searchers.
 	-l Indicates that there is a local copy of the documentation already downloaded.
-	-b Used to specify the Base Path to save your documents, by default it will be ./docs
-	-p Used to specify the remote documentation location, by default this will be /docs (Please note, you do not need to put a forward-slash (/) in your command)
+	-b Used to specify the Base Path to save your documents, by default this will be ./docs.
+	-p Used to specify the remote documentation location, by default this will be "docs".
 
-Example For Downloading Content: ./gondola -o jwhitt3r -r gondola -t 12345678975336985
+Output:
+	The output of the check will be stored within the specified basepath, under the name output.txt
 
-Example For Working On A Local Copy: ./gondola -o jwhitt3r -r gondola -l
+Examples:
+	Example For Downloading Content: ./gondola -o jwhitt3r -r gondola -t 12345678975336985
 
-Example For Saving To Non-Default Destination: ./gondola -o jwhitt3r -r gondola -b ./tmp
+	Example For Working On A Local Copy: ./gondola -o jwhitt3r -r gondola -l
 
-Example For Non-Default Remote Directory ./gondola -o jwhitt3r -r test_repo -p "documentation"
+	Example For Saving To Non-Default Destination: ./gondola -o jwhitt3r -r gondola -b ./tmp
+
+	Example For Non-Default Remote Directory ./gondola -o jwhitt3r -r test_repo -p "documentation"
 `
 
 func main() {
