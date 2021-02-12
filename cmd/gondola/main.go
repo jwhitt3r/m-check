@@ -81,7 +81,10 @@ func main() {
 	client := http.Client{Timeout: 5 * time.Second}
 	checker := urlcheck.NewURLCheck(client)
 	if local == false {
+
+		fmt.Println("[+] Finding Repository")
 		myRepo.NewGithubConnection()
+
 		FilesDownloadURL := myRepo.GetGithubContents(context.Background(), remotepath)
 
 		fmt.Println("[+] Saving All Documentation Found")
@@ -92,13 +95,16 @@ func main() {
 		myRepo.FetchAndCreate(basepath, FilesDownloadURL)
 
 	}
+
+	fmt.Println("[+] Gathering Filenames")
 	files := myRepo.GetFileNames(basepath)
 
 	links := myRepo.ParseBatch(basepath, files)
 
-	fmt.Println("[+] Checking Connectivty of Markdown Links")
+	fmt.Println("[+] Checking Connectivty Of Markdown Links")
 	webConnectionResponse := checker.URLCheckBatch(links)
 
+	fmt.Printf("[+] Findings Are Saved To %s/output.txt", basepath)
 	for _, val := range webConnectionResponse {
 		directory.OutputToFile(directory.GetFilePathTemplate(basepath, myRepo.Owner, myRepo.RepoName), val)
 	}

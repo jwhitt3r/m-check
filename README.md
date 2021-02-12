@@ -55,5 +55,7 @@ Examples:
         Example For Non-Default Remote Directory ./gondola -o jwhitt3r -r test_repo -p "documentation"
 ```
 
-# Special Thanks
-Thank you to [@mneverov](https://github.com/mneverov) for his mentorship through the development of this project.
+# Thank You's and Inspirations
+Thank you to [@mneverov](https://github.com/mneverov) for his mentorship through the development of this project!
+Thank you to [@ardanlabs](https://github.com/ardanlabs) for the awesome training Ultimate Go!
+Inspiration on how to handle flags was found at: [@rakyll](https://github.com/rakyll/hey)!

@@ -74,7 +74,6 @@ func NewRepository(owner string, reponame string, token string) *Repository {
 // personal access token. However, with a personal token this increases
 // the number of times you can connect to a repository.
 func (r *Repository) NewGithubConnection() {
-	fmt.Println("[+] Finding Repository")
 	ctx := context.Background()
 	if r.token != "" {
 		ts := oauth2.StaticTokenSource(
@@ -128,7 +127,6 @@ func (r *Repository) FetchAndCreate(basepath string, fileURLS []string) error {
 // directory and stores them into the Files Slice.
 func (r *Repository) GetFileNames(basepath string) []string {
 	var f []string
-	fmt.Println("[+] Gathering Filenames")
 	files, err := ioutil.ReadDir(directory.GetFilePathTemplate(basepath, r.Owner, r.RepoName))
 
 	if err != nil {
