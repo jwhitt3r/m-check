@@ -57,5 +57,7 @@ Examples:
 
 # Thank You's and Inspirations
 Thank you to [@mneverov](https://github.com/mneverov) for his mentorship through the development of this project!
+
 Thank you to [@ardanlabs](https://github.com/ardanlabs) for the awesome training Ultimate Go!
+
 Inspiration on how to handle flags was found at: [@rakyll](https://github.com/rakyll/hey)!
