@@ -144,7 +144,7 @@ func (r *Repository) GetFileNames(basepath string) []string {
 // Parse traverses a markdown file that has been downloaded within the
 // documentation folder within the repository, and compares a regular
 // expression to find any possible links within the documentation.
-func (r *Repository) Parse(basepath string, fileName string) []string {
+func (r *Repository) Parse(f io.Reader) []string {
 
 	var links []string
 	// The Regex will aim to locate any address that has the following structure:
@@ -153,26 +153,36 @@ func (r *Repository) Parse(basepath string, fileName string) []string {
 	// file as: [Jwhitt3rs GitHub]("https://github.com/jwhitt3r")
 	markdownURL := regexp.MustCompile(`https?://[^()]+?[^)"]+`)
 
+	scanner := bufio.NewScanner(f)
+
+	for scanner.Scan() {
+
+		submatchall := markdownURL.FindAllString(scanner.Text(), -1)
+
+		for _, element := range submatchall {
+			links = append(links, strings.TrimSpace(element))
+		}
+
+	}
+
+	return links
+}
+
+// ParseFileHandler, will generate a file handler, which is then passed to the parse
+// method to be analysed. This allows for the seperation of duties between the parser
+// and the handling of files. This function will return the links that have been gathered
+// from the parsed file.
+func (r *Repository) ParseFileHandler(basepath string, fileName string) []string {
+	var links []string
 	if filepath.Ext(fileName) == ".md" {
 		f, err := os.Open(directory.GetFilePathTemplate(basepath, r.Owner, r.RepoName) + fileName)
 		if err != nil {
 			log.Fatalf("Failed to open file: %v\n", err)
 		}
 		defer f.Close()
+		links = r.Parse(f)
 
-		scanner := bufio.NewScanner(f)
-
-		for scanner.Scan() {
-
-			submatchall := markdownURL.FindAllString(scanner.Text(), -1)
-
-			for _, element := range submatchall {
-				links = append(links, strings.TrimSpace(element))
-			}
-
-		}
 	}
-
 	return links
 }
 
@@ -186,7 +196,7 @@ func (r *Repository) ParseBatch(basepath string, files []string) []string {
 	wg.Add(len(files))
 	for _, fileName := range files {
 		go func(fileName string) {
-			ch <- r.Parse(basepath, fileName)
+			ch <- r.ParseFileHandler(basepath, fileName)
 			wg.Done()
 		}(fileName)
 
