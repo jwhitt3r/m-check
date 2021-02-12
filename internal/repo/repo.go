@@ -70,8 +70,9 @@ func NewRepository(owner string, reponame string, token string) *Repository {
 	return &r
 }
 
-// GitHubConnection creates a connection to GitHub through a personal access token
-// this increases the number of times you can connect to a repository
+// GitHubConnection creates a connection to GitHub with or without a
+// personal access token. However, with a personal token this increases
+// the number of times you can connect to a repository.
 func (r *Repository) NewGithubConnection() {
 	fmt.Println("[+] Finding Repository")
 	ctx := context.Background()
