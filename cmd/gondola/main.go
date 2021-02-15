@@ -53,6 +53,7 @@ Examples:
 `
 
 func main() {
+	var FilesDownloadURL []string
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, fmt.Sprintf(usage))
 	}
@@ -85,7 +86,7 @@ func main() {
 		fmt.Println("[+] Finding Repository")
 		myRepo.NewGithubConnection()
 
-		FilesDownloadURL := myRepo.GetGithubContents(context.Background(), remotepath)
+		myRepo.GetGithubContents(context.Background(), remotepath, &FilesDownloadURL)
 
 		fmt.Println("[+] Saving All Documentation Found")
 		err := directory.CreateDirectory(directory.GetFilePathTemplate(basepath, myRepo.Owner, myRepo.RepoName))

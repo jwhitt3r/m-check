@@ -35,13 +35,10 @@ type Repository struct {
 	client *github.Client
 }
 
-// Global variable to be used to allow for the recursive appends of files to the list.
-var filesDownloadURL []string
-
 // GithubContents recursively looks through any directory within the Documentation folder
 // of a repository and appends the FilesURL of a Markdown file to a slice of strings to be
 // downloaded later.
-func (r *Repository) GetGithubContents(ctx context.Context, path string) []string {
+func (r *Repository) GetGithubContents(ctx context.Context, path string, filesDownloadURL *[]string) {
 
 	_, dirContents, _, err := r.client.Repositories.GetContents(ctx, r.Owner, r.RepoName, path, nil)
 	if err != nil {
@@ -51,13 +48,13 @@ func (r *Repository) GetGithubContents(ctx context.Context, path string) []strin
 		switch element.GetType() {
 		case "file":
 			if filepath.Ext(element.GetName()) == ".md" {
-				filesDownloadURL = append(filesDownloadURL, element.GetDownloadURL())
+				*filesDownloadURL = append(*filesDownloadURL, element.GetDownloadURL())
 			}
 		case "dir":
-			r.GetGithubContents(ctx, element.GetPath())
+			r.GetGithubContents(ctx, element.GetPath(), filesDownloadURL)
 		}
 	}
-	return filesDownloadURL
+
 }
 
 // NewRepoistory wraps the creation of a Repository type
