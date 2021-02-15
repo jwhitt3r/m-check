@@ -15,7 +15,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/jwhitt3r/gondola/internal/platform/directory"
+	"github.com/jwhitt3r/m-check/internal/platform/directory"
 
 	"github.com/google/go-github/v33/github"
 	"golang.org/x/oauth2"
@@ -25,7 +25,7 @@ import (
 type Repository struct {
 	// Owner is the owner of the repository we are evaluating e.g., jwhitt3r.
 	Owner string
-	// RepoName is the repository that is going to be downloaded, e.g., Gondola.
+	// RepoName is the repository that is going to be downloaded, e.g., m-check.
 	RepoName string
 	// Token is the personal token used to authenticate with the Github server.
 	// By supplying a token, a user is allowed more requests to the Github server.

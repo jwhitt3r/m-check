@@ -1,4 +1,4 @@
-// Gondola is a Markdown URL checker that is to verify
+// m-check is a Markdown URL checker that is to verify
 // links that are typically found within the scope of
 // Github documentation directories.
 package main
@@ -12,9 +12,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/jwhitt3r/gondola/internal/platform/directory"
-	"github.com/jwhitt3r/gondola/internal/repo"
-	"github.com/jwhitt3r/gondola/internal/urlcheck"
+	"github.com/jwhitt3r/m-check/internal/platform/directory"
+	"github.com/jwhitt3r/m-check/internal/repo"
+	"github.com/jwhitt3r/m-check/internal/urlcheck"
 )
 
 var (
@@ -27,7 +27,7 @@ var (
 	l = flag.Bool("l", false, "Used to specify a local scan, this indicates that you have already downloaded the documentation.")
 )
 
-var usage = `Usage: Gondola [mandatory...] [options...]
+var usage = `Usage: m-check [mandatory...] [options...]
 
 Mandatory:
 	-o Owner of the repository you would like to search.
@@ -43,13 +43,13 @@ Output:
 	The output of the check will be stored within the specified basepath, under the name output.txt
 
 Examples:
-	Example For Downloading Content: ./gondola -o jwhitt3r -r gondola -t 12345678975336985
+	Example For Downloading Content: ./m-check -o jwhitt3r -r m-check -t 12345678975336985
 
-	Example For Working On A Local Copy: ./gondola -o jwhitt3r -r gondola -l
+	Example For Working On A Local Copy: ./m-check -o jwhitt3r -r m-check -l
 
-	Example For Saving To Non-Default Destination: ./gondola -o jwhitt3r -r gondola -b ./tmp
+	Example For Saving To Non-Default Destination: ./m-check -o jwhitt3r -r m-check -b ./tmp
 
-	Example For Non-Default Remote Directory ./gondola -o jwhitt3r -r test_repo -p "documentation"
+	Example For Non-Default Remote Directory ./m-check -o jwhitt3r -r test_repo -p "documentation"
 `
 
 func main() {
