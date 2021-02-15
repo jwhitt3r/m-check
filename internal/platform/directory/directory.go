@@ -36,6 +36,8 @@ func OutputToFile(path string, val string) error {
 	defer f.Close()
 
 	_, err = io.WriteString(f, val+"\n")
-
+	if err != nil {
+		log.Printf("Failed to print io line: %v", err)
+	}
 	return nil
 }

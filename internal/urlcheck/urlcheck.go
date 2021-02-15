@@ -17,7 +17,7 @@ type URLChecker struct {
 	client http.Client
 }
 
-// NewURLChecker is a wrapper for the creation of a URLChecker type
+// NewURLCheck is a wrapper for the creation of a URLChecker type
 // which returns the address of the newly created URLChecker type.
 func NewURLCheck(client http.Client) *URLChecker {
 	return &URLChecker{

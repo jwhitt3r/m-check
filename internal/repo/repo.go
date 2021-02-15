@@ -1,4 +1,4 @@
-// Package Repo contains different utilitiesto interact with GitHub.
+// Package repo contains different utilitiesto interact with GitHub.
 // This inclides, the downloading,fetching, and analysing of
 // markdown files found in online repositories.
 package repo
@@ -60,7 +60,7 @@ func (r *Repository) GetGithubContents(ctx context.Context, path string, filesDo
 
 }
 
-// NewRepoistory wraps the creation of a Repository type
+// NewRepository wraps the creation of a Repository type
 func NewRepository(owner string, reponame string, token string) *Repository {
 	r := Repository{
 		Owner:    owner,
@@ -70,7 +70,7 @@ func NewRepository(owner string, reponame string, token string) *Repository {
 	return &r
 }
 
-// GitHubConnection creates a connection to GitHub with or without a
+// NewGithubConnection creates a connection to GitHub with or without a
 // personal access token. However, with a personal token this increases
 // the number of times you can connect to a repository.
 func (r *Repository) NewGithubConnection() {
@@ -167,8 +167,8 @@ func (r *Repository) Parse(f io.Reader) []string {
 	return links
 }
 
-// ParseFileHandler, will generate a file handler, which is then passed to the parse
-// method to be analysed. This allows for the seperation of duties between the parser
+// ParseFileHandler will generate a file handler, which is then passed to the parse
+// method to be analysed. This allows for the separation of duties between the parser
 // and the handling of files. This function will return the links that have been gathered
 // from the parsed file.
 func (r *Repository) ParseFileHandler(basepath string, fileName string) []string {
