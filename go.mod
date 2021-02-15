@@ -1,4 +1,4 @@
-module github.com/jwhitt3r/gondola
+module github.com/jwhitt3r/m-check
 
 go 1.15
 

@@ -1,7 +1,7 @@
-# Gondola
-Gondola is a markdown parser aimed at reviewing links found within the documentation of Github repositories.
+# m-check
+m-check is a markdown parser aimed at reviewing links found within the documentation of Github repositories.
 
-Gondola, can work with both remote repositories and local repositories.
+m-check, can work with both remote repositories and local repositories.
 
 If a link is detected within a markdown file, a GET request will be made to establish if the connection is valid. Depending on the outcome, a HTTP Status will be provided, e.g., `200 , 400, 404, etc`. 
 
@@ -10,9 +10,9 @@ If however, the link could not be reached, for example, due to network error or 
 It should be advised that any link that does not appear to work, should be manually investigated.
 
 # Installation
-To download Gondola, simply run:
+To download m-check, simply run:
 ```
-go get github.com/jwhitt3r/gondola
+go get github.com/jwhitt3r/m-check
 ```
 
 Finally, to build run the makefile:
@@ -22,15 +22,15 @@ make build
 
 or alternatively:
 ```
-go build cmd/gondola/main.go
+go build cmd/m-check/main.go
 ```
 
 # Usage
 Below is a detailed breakdown of each flag, with working examples.
 
 ```
-$ go run cmd/gondola/main.go
-Usage: Gondola [mandatory...] [options...]
+$ go run cmd/m-check/main.go
+Usage: m-check [mandatory...] [options...]
 
 Mandatory:
         -o Owner of the repository you would like to search.
@@ -46,13 +46,13 @@ Output:
         The output of the check will be stored within the specified basepath, under the name output.txt
 
 Examples:
-        Example For Downloading Content: ./gondola -o jwhitt3r -r gondola -t 12345678975336985
+        Example For Downloading Content: ./m-check -o jwhitt3r -r m-check -t 12345678975336985
 
-        Example For Working On A Local Copy: ./gondola -o jwhitt3r -r gondola -l
+        Example For Working On A Local Copy: ./m-check -o jwhitt3r -r m-check -l
 
-        Example For Saving To Non-Default Destination: ./gondola -o jwhitt3r -r gondola -b ./tmp
+        Example For Saving To Non-Default Destination: ./m-check -o jwhitt3r -r m-check -b ./tmp
 
-        Example For Non-Default Remote Directory ./gondola -o jwhitt3r -r test_repo -p "documentation"
+        Example For Non-Default Remote Directory ./m-check -o jwhitt3r -r test_repo -p "documentation"
 ```
 
 # Thank You's and Inspirations
