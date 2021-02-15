@@ -1,3 +1,5 @@
+// Package directory manages the interactions of the Filesystem during
+// the applications runtime.
 package directory
 
 import (

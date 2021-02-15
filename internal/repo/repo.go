@@ -1,7 +1,6 @@
-// Repo is a package that contains different utilities
-// to interact with GitHub. This inclides, the downloading,
-// fetching, and analysing of markdown files found in online
-// repositories.
+// Package Repo contains different utilitiesto interact with GitHub.
+// This inclides, the downloading,fetching, and analysing of
+// markdown files found in online repositories.
 package repo
 
 import (

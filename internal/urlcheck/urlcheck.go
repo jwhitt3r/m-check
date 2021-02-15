@@ -1,3 +1,6 @@
+// Package urlcheck validates all the links found within
+// the markdown files collected that have been used within
+// a Github repository.
 package urlcheck
 
 import (
