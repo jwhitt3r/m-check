@@ -91,7 +91,7 @@ func main() {
 		fmt.Println("[+] Saving All Documentation Found")
 		err := directory.CreateDirectory(directory.GetFilePathTemplate(basepath, myRepo.Owner, myRepo.RepoName))
 		if err != nil {
-			log.Fatalf("An error occured while making a new directory: %v\n", err)
+			log.Fatalf("An error occurred while making a new directory: %v\n", err)
 		}
 		myRepo.FetchAndCreate(basepath, FilesDownloadURL)
 
@@ -102,7 +102,7 @@ func main() {
 
 	links := myRepo.ParseBatch(basepath, files)
 
-	fmt.Println("[+] Checking Connectivty Of Markdown Links")
+	fmt.Println("[+] Checking Connectivity Of Markdown Links")
 	webConnectionResponse := checker.URLCheckBatch(links)
 
 	fmt.Printf("[+] Findings Are Saved To %s/output.txt", basepath)
