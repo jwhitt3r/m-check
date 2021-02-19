@@ -38,10 +38,10 @@ type Repository struct {
 	client *github.Client
 }
 
-// GetGithubContents recursively looks through any directory within the Documentation folder
+// GithubContents recursively looks through any directory within the Documentation folder
 // of a repository and appends the FilesURL of a Markdown file to a slice of strings to be
 // downloaded later.
-func (r *Repository) GetGithubContents(ctx context.Context, path string, filesDownloadURL *[]string) {
+func (r *Repository) GithubContents(ctx context.Context, path string, filesDownloadURL *[]string) {
 
 	_, dirContents, _, err := r.client.Repositories.GetContents(ctx, r.Owner, r.RepoName, path, nil)
 	if err != nil {
@@ -54,7 +54,7 @@ func (r *Repository) GetGithubContents(ctx context.Context, path string, filesDo
 				*filesDownloadURL = append(*filesDownloadURL, element.GetDownloadURL())
 			}
 		case "dir":
-			r.GetGithubContents(ctx, element.GetPath(), filesDownloadURL)
+			r.GithubContents(ctx, element.GetPath(), filesDownloadURL)
 		}
 	}
 
@@ -106,7 +106,7 @@ func (r *Repository) FetchAndCreate(basepath string, fileURLS []string) error {
 		path := strings.ReplaceAll(u.Path, "/", ".")
 		pathFirstIndex := strings.Index(path, ".docs")
 
-		f, err := os.Create(directory.GetFilePathTemplate(basepath, r.Owner, r.RepoName) + path[pathFirstIndex+6:])
+		f, err := os.Create(directory.FilePathTemplate(basepath, r.Owner, r.RepoName) + path[pathFirstIndex+6:])
 		if err != nil {
 			log.Fatalf("Failed to create file: %v\n", err)
 		}
@@ -123,11 +123,11 @@ func (r *Repository) FetchAndCreate(basepath string, fileURLS []string) error {
 
 }
 
-// GetFileNames gathers all the downloaded files found within the docs
+// FileNames gathers all the downloaded files found within the docs
 // directory and stores them into the Files Slice.
-func (r *Repository) GetFileNames(basepath string) []string {
+func (r *Repository) FileNames(basepath string) []string {
 	var f []string
-	files, err := ioutil.ReadDir(directory.GetFilePathTemplate(basepath, r.Owner, r.RepoName))
+	files, err := ioutil.ReadDir(directory.FilePathTemplate(basepath, r.Owner, r.RepoName))
 
 	if err != nil {
 		log.Fatalf("Could not read files from directory: %v\n", err)
@@ -174,7 +174,7 @@ func (r *Repository) Parse(f io.Reader) []string {
 func (r *Repository) ParseFileHandler(basepath string, fileName string) []string {
 	var links []string
 	if filepath.Ext(fileName) == ".md" {
-		f, err := os.Open(directory.GetFilePathTemplate(basepath, r.Owner, r.RepoName) + fileName)
+		f, err := os.Open(directory.FilePathTemplate(basepath, r.Owner, r.RepoName) + fileName)
 		if err != nil {
 			log.Fatalf("Failed to open file: %v\n", err)
 		}

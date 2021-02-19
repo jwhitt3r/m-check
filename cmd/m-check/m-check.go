@@ -86,10 +86,10 @@ func main() {
 		fmt.Println("[+] Finding Repository")
 		myRepo.NewGithubConnection()
 
-		myRepo.GetGithubContents(context.Background(), remotepath, &FilesDownloadURL)
+		myRepo.GithubContents(context.Background(), remotepath, &FilesDownloadURL)
 
 		fmt.Println("[+] Saving All Documentation Found")
-		err := directory.CreateDirectory(directory.GetFilePathTemplate(basepath, myRepo.Owner, myRepo.RepoName))
+		err := directory.CreateDirectory(directory.FilePathTemplate(basepath, myRepo.Owner, myRepo.RepoName))
 		if err != nil {
 			log.Fatalf("An error occurred while making a new directory: %v\n", err)
 		}
@@ -98,7 +98,7 @@ func main() {
 	}
 
 	fmt.Println("[+] Gathering Filenames")
-	files := myRepo.GetFileNames(basepath)
+	files := myRepo.FileNames(basepath)
 
 	links := myRepo.ParseBatch(basepath, files)
 
@@ -107,7 +107,7 @@ func main() {
 
 	fmt.Printf("[+] Findings Are Saved To %s/output.txt", basepath)
 	for _, val := range webConnectionResponse {
-		directory.OutputToFile(directory.GetFilePathTemplate(basepath, myRepo.Owner, myRepo.RepoName), val)
+		directory.OutputToFile(directory.FilePathTemplate(basepath, myRepo.Owner, myRepo.RepoName), val)
 	}
 
 }
