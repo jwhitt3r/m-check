@@ -19,9 +19,9 @@ type URLChecker struct {
 
 // NewURLCheck is a wrapper for the creation of a URLChecker type
 // which returns the address of the newly created URLChecker type.
-func NewURLCheck(client http.Client) *URLChecker {
+func NewURLCheck(client *http.Client) *URLChecker {
 	return &URLChecker{
-		client: client,
+		client: *client,
 	}
 }
 

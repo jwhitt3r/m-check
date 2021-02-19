@@ -80,7 +80,7 @@ func main() {
 
 	myRepo := repo.NewRepository(owner, reponame, token)
 	client := http.Client{Timeout: 5 * time.Second}
-	checker := urlcheck.NewURLCheck(client)
+	checker := urlcheck.NewURLCheck(&client)
 	if local == false {
 
 		fmt.Println("[+] Finding Repository")
