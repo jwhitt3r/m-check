@@ -20,8 +20,8 @@ func CreateDirectory(path string) error {
 	return err
 }
 
-// GetFilePathTemplate formats a filepath to be used for the creation of a new file.
-func GetFilePathTemplate(base string, owner string, repoName string) string {
+// FilePathTemplate formats a filepath to be used for the creation of a new file.
+func FilePathTemplate(base string, owner string, repoName string) string {
 	filePathTemplate := fmt.Sprintf("./%s/%s/%s/", base, owner, repoName)
 	return filePathTemplate
 }
