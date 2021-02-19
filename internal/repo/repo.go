@@ -38,7 +38,7 @@ type Repository struct {
 	client *github.Client
 }
 
-// GithubContents recursively looks through any directory within the Documentation folder
+// GetGithubContents recursively looks through any directory within the Documentation folder
 // of a repository and appends the FilesURL of a Markdown file to a slice of strings to be
 // downloaded later.
 func (r *Repository) GetGithubContents(ctx context.Context, path string, filesDownloadURL *[]string) {
