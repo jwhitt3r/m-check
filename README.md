@@ -1,3 +1,5 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/jwhitt3r/m-check)](https://goreportcard.com/report/github.com/jwhitt3r/m-check)
+![Follow](https://img.shields.io/twitter/follow/JACK_WJ?style=social)
 # m-check
 m-check is a markdown parser aimed at reviewing links found within the documentation of Github repositories.
 
